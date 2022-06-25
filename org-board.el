@@ -475,7 +475,22 @@ the system browser."
 
 (defcustom org-board-make-relative nil
   "Non-nil means make the resulting path link relative."
-	:type 'boolean)
+  :type 'boolean)
+
+(defcustom org-board-link-type 'file
+  "Type of links to insert when linking to archived directory files.
+
+Two possible options are:
+`file': The default, using \"file:\" link to archived directory.
+Depending on `org-board-make-relative' the file path can be relative
+or absolute.
+
+`attachment': Using \"attachment:\" link to archived directory.
+This uses Org-mode's attachment system to associate the archived
+webpages to org entry that user can interact using `org-attach'
+command via \\[org-attach]."
+  :type '(choice (const :tag "Use file: link" file)
+                 (const :tag "Use attachment: link" attachment)))
 
 (defvar org-board-pcomplete-wget
   `("--execute" "--bind-address=" "--bind-dns-address=" "--dns-servers="
@@ -700,10 +715,12 @@ added as a link in the `ARCHIVED_AT' property."
          (output-directory (concat (file-name-as-directory attach-directory)
                                    (file-name-as-directory timestamp)))
          (org-id-token (org-id-get))
-         (link-to-output (if (not org-board-make-relative)
-			     (concat "[[file:" output-directory "]["
-				     timestamp "]]")
-			   (concat "[[file:" (file-relative-name output-directory)"][" timestamp "]]")))
+         (link-to-output (if (eq 'file org-board-link-type)
+                             (if (not org-board-make-relative)
+			         (concat "[[file:" output-directory "]["
+				         timestamp "]]")
+			       (concat "[[file:" (file-relative-name output-directory)"][" timestamp "]]"))
+                           (concat "[[attachment:" timestamp "][" timestamp "]]")))
          (wget-process (org-board-wget-call org-board-wget-program
                                             output-directory
                                             options

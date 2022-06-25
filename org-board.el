@@ -820,12 +820,17 @@ most recent archive, in Dired."
   (let* ((link (car (last
                      (org-entry-get-multivalued-property
                       (point) "ARCHIVED_AT"))))
+         (match-string (string-match "^\\[\\[\\(file\\|attachment\\):\\(.*\\)\\]\\[.*\\]\\]$" link))
+         (protocol (match-string-no-properties 1 link))
+         (path (match-string-no-properties 2 link))
          (folder
-          (expand-file-name
-          	(progn
-            		(string-match "^\\[\\[file:\\(.*\\)\\]\\[.*\\]\\]$" link)
-            		(match-string-no-properties 1 link))
-	 		        (file-name-directory (or buffer-file-name ""))))
+          (if (string= protocol "file")
+              (if (file-name-absolute-p path)
+                  path
+                (expand-file-name
+                 path
+                 (file-name-directory buffer-file-name)))
+            (org-attach-dir)))
          (urls
           (org-entry-get-multivalued-property (point) "URL")))
     (dolist (url-string urls)

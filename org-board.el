@@ -717,9 +717,9 @@ added as a link in the `ARCHIVED_AT' property."
          (org-id-token (org-id-get))
          (link-to-output (if (eq 'file org-board-link-type)
                              (if (not org-board-make-relative)
-			         (concat "[[file:" output-directory "]["
-				         timestamp "]]")
-			       (concat "[[file:" (file-relative-name output-directory)"][" timestamp "]]"))
+                                 (concat "[[file:" output-directory "]["
+                                         timestamp "]]")
+                               (concat "[[file:" (file-relative-name output-directory) "][" timestamp "]]"))
                            (concat "[[attachment:" timestamp "][" timestamp "]]")))
          (wget-process (org-board-wget-call org-board-wget-program
                                             output-directory

@@ -832,38 +832,44 @@ most recent archive, in Dired."
                  (file-name-directory buffer-file-name)))
             (org-attach-dir)))
          (urls
-          (org-entry-get-multivalued-property (point) "URL")))
-    (dolist (url-string urls)
-      (let* ((url-parsed (url-generic-parse-url url-string))
-             (url-host-string (url-host url-parsed))
-             (url-path-string (url-filename url-parsed))
-             (url-combined-string (concat folder
-                                          url-host-string
-                                          url-path-string))
-             (url-filesystem-guess (if (string=
-                                        (substring
-                                         url-combined-string -1)
-                                        "/")
-                                       ;; `url-combined-string' may
-                                       ;; already have `.html' at the
-                                       ;; end of it.  But if it
-                                       ;; doesn't, extend it to end
-                                       ;; with `index.html'.
-                                       (org-board-extend-default-path
-                                        url-combined-string)
-                                     url-combined-string)))
-        (unless (eq (org-board-open-with url-filesystem-guess arg) 0)
-          ;; If the above didn't find our HTML file, try appending
-          ;; `.html' to the name and open that instead.  If that
-          ;; doesn't work, throw the job to `find-name-dired'.
-          (let* ((url-html-appended-string
-                  (concat url-combined-string ".html")))
-            ;; Should refactor this repetitive opening strategy to a
-            ;; `while' loop instead.
-            (unless (eq (org-board-open-with
-                         url-html-appended-string arg)
-                        0)
-              (find-name-dired folder "*.html"))))))))
+          (org-entry-get-multivalued-property (point) "URL"))
+         (files (directory-files-recursively folder (rx anything "." (or "html" "htm")) t)))
+    (cond ((= (length files) 1)
+           (org-board-open-with (car files) arg))
+          ((> (length files) 1)
+           (org-board-open-with (completing-read "Which html files? " files) arg))
+          (t
+           (dolist (url-string urls)
+             (let* ((url-parsed (url-generic-parse-url url-string))
+                    (url-host-string (url-host url-parsed))
+                    (url-path-string (url-filename url-parsed))
+                    (url-combined-string (concat (file-name-as-directory folder)
+                                                 url-host-string
+                                                 url-path-string))
+                    (url-filesystem-guess (if (string=
+                                               (substring
+                                                url-combined-string -1)
+                                               "/")
+                                              ;; `url-combined-string' may
+                                              ;; already have `.html' at the
+                                              ;; end of it.  But if it
+                                              ;; doesn't, extend it to end
+                                              ;; with `index.html'.
+                                              (org-board-extend-default-path
+                                               url-combined-string)
+                                            url-combined-string)))
+               (unless (eq (org-board-open-with url-filesystem-guess arg) 0)
+                 ;; If the above didn't find our HTML file, try appending
+                 ;; `.html' to the name and open that instead.  If that
+                 ;; doesn't work, throw the job to `find-name-dired'.
+                 (let* ((url-html-appended-string
+                         (concat url-combined-string ".html")))
+                   ;; Should refactor this repetitive opening strategy to a
+                   ;; `while' loop instead.
+                   (unless (eq (org-board-open-with
+                                url-html-appended-string arg)
+                               0)
+                     (find-name-dired folder "*.html"))))))))))
 
 ;;;###autoload
 (defun org-board-open-with (filename-string arg)

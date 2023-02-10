@@ -734,7 +734,9 @@ added as a link in the `ARCHIVED_AT' property."
     (process-put wget-process 'urls
                  (org-board-copy-list urls))
     (org-entry-add-to-multivalued-property (point) "ARCHIVED_AT"
-                                           link-to-output)))
+                                           link-to-output)
+    (run-hook-with-args 'org-attach-after-change-hook attach-directory)
+    (org-attach-tag)))
 
 ;;;###autoload
 (defun org-board-archive-dry-run ()
